@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=1080'>
+  <title>Document</title>
+</head>
+
+<body>
+  <h1>剩余点击次数<span>2</span></h1>
+  <h2></h2>
+  <img src='' alt=''>
+  <script src='/socket.io.js'></script>
+  <script>
+    var socket = io('http://localhost:7001');
+
+    var img = document.querySelector('img');
+    var span = document.querySelector('span');
+    var h2 = document.querySelector('h2');
+
+    socket.on('connect', function() {
+      socket.emit('start');
+    });
+  
+    socket.on('jumpStart', function(src) {
+      img.src = src;
+    });
+
+    socket.on('jumpEnd', function() {
+      socket.emit('start');
+    });
+  
+  
+    socket.on('disconnect', function(){
+      console.info('disconnect');
+    });
+
+    
+    var posi = [];
+
+    img.onclick = function(e) {
+      if (posi.length > 2) {
+        return false;
+      }
+
+      posi.push([e.offsetX, e.offsetY]);
+
+      span.innerText = 2 - posi.length;
+
+      if (posi.length === 2) {
+        h2.innerText = '通知后端...';
+        var calX = posi[1][0] - posi[0][0];        
+        var calY = posi[1][1] - posi[0][1];
+        var time = Math.pow((calX *calX + calY * calY), 0.5) * 1.35;
+        socket.emit('jump', time);
+      }
+    };
+
+    img.onload = function() {
+      posi = [];
+      span.innerText = 2;
+      h2.innerText = '重新截屏完毕...可以点击';
+    }
+  </script>
+</body>
+
+</html>
